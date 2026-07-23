@@ -1,0 +1,184 @@
+<!--
+  =========================================================================
+  Shoe Mileage Monitor
+  -------------------------------------------------------------------------
+  A mobile-first single page app that tracks how many hours you play
+  basketball in a specific pair of shoes, so you know when the foam
+  cushion and grip are worn out.
+
+  This file only describes the STRUCTURE of the page. All styling lives
+  in css/styles.css and all behaviour lives in the js/ folder. The code
+  is split into small, single-purpose modules so it can be reused when
+  this app is later wrapped into a native mobile app.
+
+  Script load order matters (each file attaches one module to the global
+  `window.SMM` namespace, and later files depend on earlier ones):
+    1. storage.js  -> persistence layer  (localStorage wrapper)
+    2. data.js     -> pure business logic (no DOM, no storage)
+    3. ui.js       -> rendering layer     (DOM only, no business logic)
+    4. app.js      -> controller that wires everything together
+  =========================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Mobile-first: lock the viewport to the device width so the layout
+       behaves like a native phone screen and cannot be pinch-zoomed. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#12141c" />
+  <meta name="description" content="Track basketball shoe playtime to monitor cushion and grip wear." />
+  <title>Shoe Mileage Monitor</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- The whole app lives inside a phone-shaped frame. On a real phone this
+       fills the screen; on a desktop it is centred and sized like a handset
+       so you can preview the "native app" feel. -->
+  <div class="phone" id="app">
+
+    <!-- ============================ HEADER ============================ -->
+    <header class="app-header">
+      <div class="app-header__title">
+        <span class="app-header__logo" aria-hidden="true">🏀</span>
+        <div>
+          <h1 class="app-header__name">Shoe Mileage Monitor</h1>
+          <p class="app-header__tag">Track cushion &amp; grip wear</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== GLOBAL WARNING BANNER ==================== -->
+    <!-- Shown by the UI layer whenever one or more shoes cross the wear
+         threshold. Hidden by default via the `is-hidden` class. -->
+    <div class="alert-banner is-hidden" id="alert-banner" role="alert" aria-live="assertive">
+      <span class="alert-banner__icon" aria-hidden="true">⚠️</span>
+      <span class="alert-banner__text" id="alert-banner-text"></span>
+    </div>
+
+    <!-- ========================= MAIN SCROLL ========================= -->
+    <main class="app-main" id="main">
+
+      <!-- ---------- Add-a-shoe form ---------- -->
+      <section class="card form-card" aria-labelledby="add-shoe-heading">
+        <h2 class="card__heading" id="add-shoe-heading">Add a pair</h2>
+
+        <!-- `novalidate` disables the browser's native pop-ups so our own
+             JavaScript validation controls all error messaging. -->
+        <form id="add-shoe-form" class="form" novalidate>
+          <label class="field">
+            <span class="field__label">Shoe name</span>
+            <input
+              class="field__input"
+              type="text"
+              id="shoe-name"
+              name="shoe-name"
+              placeholder="e.g. Kobe 6 Protro"
+              autocomplete="off"
+              maxlength="40"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Brand <span class="field__optional">(optional)</span></span>
+            <input
+              class="field__input"
+              type="text"
+              id="shoe-brand"
+              name="shoe-brand"
+              placeholder="e.g. Nike"
+              autocomplete="off"
+              maxlength="30"
+            />
+          </label>
+
+          <!-- Inline error line for this form. Filled in by the UI layer. -->
+          <p class="form__error is-hidden" id="add-shoe-error" role="alert"></p>
+
+          <button class="btn btn--primary" type="submit">Add shoe</button>
+        </form>
+      </section>
+
+      <!-- ---------- Shoe list ---------- -->
+      <section aria-labelledby="rack-heading">
+        <div class="section-title">
+          <h2 class="section-title__text" id="rack-heading">Your rack</h2>
+          <span class="section-title__count" id="shoe-count">0</span>
+        </div>
+
+        <!-- Friendly empty state, shown when there are no shoes yet. -->
+        <div class="empty-state" id="empty-state">
+          <span class="empty-state__icon" aria-hidden="true">👟</span>
+          <p class="empty-state__title">No shoes yet</p>
+          <p class="empty-state__hint">Add a pair above, then log your court time to start tracking wear.</p>
+        </div>
+
+        <!-- Cards for each shoe are rendered into this list by the UI layer. -->
+        <ul class="shoe-list" id="shoe-list"></ul>
+      </section>
+
+      <footer class="app-footer">
+        <p>Foam cushion and grip start breaking down around
+           <strong id="threshold-note">50</strong> hours of play.</p>
+      </footer>
+    </main>
+
+    <!-- ===================== LOG SESSION MODAL ===================== -->
+    <!-- A single reusable modal used to log hours against a chosen shoe.
+         It is opened by the controller when a shoe's "Log session" button
+         is tapped, and stays hidden otherwise. -->
+    <div class="modal is-hidden" id="log-modal" role="dialog" aria-modal="true" aria-labelledby="log-modal-title">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__sheet">
+        <div class="modal__handle" aria-hidden="true"></div>
+
+        <h2 class="modal__title" id="log-modal-title">Log a session</h2>
+        <p class="modal__subtitle" id="log-modal-shoe">&nbsp;</p>
+
+        <form id="log-session-form" class="form" novalidate>
+          <!-- Hidden field carries the id of the shoe being logged. -->
+          <input type="hidden" id="log-shoe-id" />
+
+          <label class="field">
+            <span class="field__label">Hours played</span>
+            <!-- Deliberately a text input with a decimal keypad rather than
+                 type="number": this lets the user physically type letters so
+                 our own JavaScript validation can catch them and show a
+                 friendly message, instead of the browser silently blocking
+                 the keystrokes. -->
+            <input
+              class="field__input"
+              type="text"
+              id="log-hours"
+              name="log-hours"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="e.g. 1.5"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Date</span>
+            <input class="field__input" type="date" id="log-date" name="log-date" />
+          </label>
+
+          <p class="form__error is-hidden" id="log-session-error" role="alert"></p>
+
+          <div class="modal__actions">
+            <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+            <button class="btn btn--primary" type="submit">Save session</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load order is intentional: persistence -> logic -> rendering -> controller. -->
+  <script src="js/storage.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

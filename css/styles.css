@@ -1,0 +1,560 @@
+/* =========================================================================
+ * styles.css  —  MOBILE-FIRST STYLING
+ * -------------------------------------------------------------------------
+ * Structured from small to large:
+ *   1. Design tokens (CSS custom properties)
+ *   2. Base / reset
+ *   3. Layout: phone frame, header, main, footer
+ *   4. Components: cards, forms, buttons, pills, progress bars
+ *   5. Alerts & modal
+ *   6. Larger-screen tweaks (the app is designed phone-first, then framed
+ *      nicely on desktop so it still feels like a handset).
+ *
+ * Basketball theme: dark "court at night" background with a bright basketball
+ * orange as the primary accent.
+ * =======================================================================*/
+
+/* ------------------------------------------------------------------ *
+ * 1. DESIGN TOKENS
+ * ------------------------------------------------------------------ */
+:root {
+  /* Brand / accent */
+  --color-accent: #ff6a2b;          /* basketball orange */
+  --color-accent-dark: #e2551a;
+  --color-accent-soft: rgba(255, 106, 43, 0.14);
+
+  /* Surfaces */
+  --color-bg: #0d0f16;              /* page background behind the phone */
+  --color-app: #12141c;             /* phone screen background */
+  --color-card: #1b1e29;            /* raised card surface */
+  --color-card-2: #232735;          /* nested surface (stats, inputs) */
+  --color-line: #2c3040;            /* hairline borders */
+
+  /* Text */
+  --color-text: #f4f5f7;
+  --color-text-dim: #9aa0b0;
+  --color-text-faint: #6b7180;
+
+  /* Wear-zone status colours */
+  --zone-fresh: #35d07f;            /* green  — plenty of life */
+  --zone-moderate: #ffd23f;         /* yellow — breaking in */
+  --zone-warning: #ff8c3b;          /* orange — almost done */
+  --zone-wornout: #ff4d4d;          /* red    — replace them */
+
+  /* Radii & shadows for the soft, native card look */
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. BASE / RESET
+ * ------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Respect the notch / home indicator on modern phones. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--color-text);
+  background: var(--color-bg);
+  /* On desktop, centre the phone frame; on mobile it fills the screen. */
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;              /* dvh keeps it correct with mobile chrome */
+  line-height: 1.45;
+}
+
+/* Remove the tap-highlight flash on mobile for a more native feel. */
+button,
+input {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. LAYOUT
+ * ------------------------------------------------------------------ */
+
+/* The phone frame: full-bleed on a handset, a centred "device" on desktop. */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 460px;               /* handset-ish width on large screens */
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-app);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sticky app-style header. */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(180deg, #171a24 0%, #12141c 100%);
+  border-bottom: 1px solid var(--color-line);
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 18px 14px;
+}
+
+.app-header__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-header__logo {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.app-header__name {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.app-header__tag {
+  font-size: 12.5px;
+  color: var(--color-text-dim);
+}
+
+/* The scrollable content area. */
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.app-footer {
+  margin-top: 4px;
+  text-align: center;
+  color: var(--color-text-faint);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.app-footer strong { color: var(--color-text-dim); }
+
+/* Section title row with a count chip. */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.section-title__text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.section-title__count {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: var(--color-card-2);
+  color: var(--color-text-dim);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. COMPONENTS
+ * ------------------------------------------------------------------ */
+
+/* Generic raised card. */
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.card__heading {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* ---- Forms ---- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-dim);
+}
+
+.field__optional {
+  color: var(--color-text-faint);
+  font-weight: 400;
+}
+
+.field__input {
+  width: 100%;
+  background: var(--color-card-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 16px;                 /* 16px avoids iOS zoom-on-focus */
+  padding: 13px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field__input::placeholder { color: var(--color-text-faint); }
+
+.field__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+/* Red state applied by JS when validation fails. */
+.field__input--error {
+  border-color: var(--zone-wornout);
+  box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.16);
+}
+
+.form__error {
+  color: var(--zone-wornout);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: -2px;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px 16px;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease, opacity 0.15s ease;
+  color: #fff;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn--primary {
+  background: var(--color-accent);
+}
+.btn--primary:hover { background: var(--color-accent-dark); }
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--color-line);
+  color: var(--color-text-dim);
+}
+
+.btn--danger-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 77, 77, 0.4);
+  color: #ff8a8a;
+}
+.btn--danger-ghost:hover { background: rgba(255, 77, 77, 0.1); }
+
+.btn--small {
+  padding: 10px 14px;
+  font-size: 13.5px;
+}
+
+/* ---- Empty state ---- */
+.empty-state {
+  text-align: center;
+  padding: 30px 18px;
+  background: var(--color-card);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+.empty-state__icon { font-size: 40px; display: block; margin-bottom: 8px; }
+.empty-state__title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.empty-state__hint { color: var(--color-text-dim); font-size: 13px; }
+
+/* ---- Shoe cards ---- */
+.shoe-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shoe-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  /* A coloured left edge echoes the shoe's wear zone at a glance. */
+  border-left: 4px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Tint the card edge by wear zone. */
+.shoe-card--fresh    { border-left-color: var(--zone-fresh); }
+.shoe-card--moderate { border-left-color: var(--zone-moderate); }
+.shoe-card--warning  { border-left-color: var(--zone-warning); }
+.shoe-card--wornout  { border-left-color: var(--zone-wornout); }
+
+.shoe-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.shoe-card__name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.shoe-card__brand {
+  font-size: 12.5px;
+  color: var(--color-text-dim);
+  margin-top: 2px;
+}
+
+/* Small status pill (Fresh / Breaking in / Almost done / Worn out). */
+.pill {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pill--fresh    { background: rgba(53, 208, 127, 0.16); color: var(--zone-fresh); }
+.pill--moderate { background: rgba(255, 210, 63, 0.16); color: var(--zone-moderate); }
+.pill--warning  { background: rgba(255, 140, 59, 0.18); color: var(--zone-warning); }
+.pill--wornout  { background: rgba(255, 77, 77, 0.18);  color: var(--zone-wornout); }
+
+/* Three-up stat row. */
+.shoe-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.stat {
+  background: var(--color-card-2);
+  border-radius: var(--radius-md);
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.stat__value {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.stat__label {
+  display: block;
+  font-size: 10.5px;
+  color: var(--color-text-dim);
+  margin-top: 2px;
+}
+
+/* Progress bar toward the wear threshold. */
+.progress {
+  height: 9px;
+  background: var(--color-card-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.progress__fill--fresh    { background: var(--zone-fresh); }
+.progress__fill--moderate { background: var(--zone-moderate); }
+.progress__fill--warning  { background: var(--zone-warning); }
+.progress__fill--wornout  { background: var(--zone-wornout); }
+
+.shoe-card__percent {
+  font-size: 11.5px;
+  color: var(--color-text-dim);
+  margin-top: 6px;
+}
+
+/* Per-card worn-out strip. */
+.shoe-card__warning {
+  margin-top: 12px;
+  background: rgba(255, 77, 77, 0.12);
+  border: 1px solid rgba(255, 77, 77, 0.35);
+  color: #ffb0b0;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+}
+
+.shoe-card__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.shoe-card__actions .btn { flex: 1; }
+
+/* ------------------------------------------------------------------ *
+ * 5. ALERTS & MODAL
+ * ------------------------------------------------------------------ */
+
+/* Big, unmissable global warning banner. Sticks under the header. */
+.alert-banner {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(90deg, #c0261f 0%, #ff4d4d 100%);
+  color: #fff;
+  padding: 13px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(255, 77, 77, 0.35);
+  /* Gentle pulse so it reads as urgent without being obnoxious. */
+  animation: bannerPulse 1.8s ease-in-out infinite;
+}
+
+.alert-banner__icon { font-size: 20px; flex-shrink: 0; }
+
+@keyframes bannerPulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.18); }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .alert-banner { animation: none; }
+  .progress__fill { transition: none; }
+  .btn:active { transform: none; }
+}
+
+/* ---- Log-session modal (bottom sheet style) ---- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;          /* slide up from the bottom like a native sheet */
+  justify-content: center;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  background: var(--color-app);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  border-top: 1px solid var(--color-line);
+  padding: 10px 18px calc(env(safe-area-inset-bottom, 0px) + 22px);
+  animation: sheetUp 0.22s ease;
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.modal__handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-line);
+  margin: 6px auto 14px;
+}
+
+.modal__title { font-size: 18px; font-weight: 700; }
+.modal__subtitle {
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 2px 0 16px;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.modal__actions .btn { flex: 1; }
+
+/* ---- Shared visibility helper ---- */
+.is-hidden { display: none !important; }
+
+/* ------------------------------------------------------------------ *
+ * 6. LARGER SCREENS
+ * ------------------------------------------------------------------ */
+@media (min-width: 480px) {
+  body {
+    /* A subtle court-lit backdrop around the framed handset. */
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #1a1d29 0%, var(--color-bg) 60%);
+    padding: 24px 0;
+    align-items: center;
+  }
+
+  .phone {
+    min-height: auto;
+    height: min(880px, calc(100dvh - 48px));
+    border-radius: 30px;
+    border: 1px solid var(--color-line);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Keep the modal contained within the framed phone on desktop. */
+  .modal { border-radius: 30px; overflow: hidden; }
+}
